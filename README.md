@@ -72,20 +72,59 @@ Keywords:
 • OOP - There are multiple syntaxes used for Object Oriented Programming
 1. "class" - the main keyword to define a object
 2. <const> - the "construction" name, used in
-`
+```python
 private func <const>(self)
 {
     ...
 }
-`
+```
 or as
-`public func <const>(self)
+```python
+public func <const>(self)
 {
     ...
-}`
+}
+```
 this is the construction class, or the initializer, this is where class instances like "self", class attributes, and other more gets defined.
 3. "inherit" - The constructor class is also where "inherit" keyword is mostly used, "inherit" gets the attributes, methods, and other more class object information from a Parent class, which is usually defined as
-`class Child_class(Parent_class1, Parentclass2, ...)`
+```python
+class Child_class(Parent_class1, Parentclass2, ...)
+```
+
+___
+# Libraries
+___
+Npp supports custom user built libraries that it can add within the code, and treats it as one
+This can be either importing .npp codes
+or building your own library (in /library directory) which uses python programs or even deeper, any type of program as long as it follows these instructions
+```python
+#add this code to /library directory
+import ...#import any libraries, modules, etc as dependencies
+
+class any_library_name:
+    #the class constructor method must follow this arguments and code
+    def __init__(self, library, library_name, variables, Errors, attempt):
+        self.library = library
+        self.library_name = library_name
+        ...
+    # this method must also be added
+    def process(self, line, variant="ol"):
+        if variant == "av": # meaning assign vatiable
+            return self.variable_assignment(line) # MUST USE RETURN IF VARIABLE ASSIGNMENT
+        else:
+            self.one_line_instruction(line)
+```
+Important notices
+- self.process() must be always defined as Npp expects a method named process() with 2 arguments, line and variant.
+- variants are 2 types,
+- 1. "av" means Assign to Variable, this is defined when there is a code like this
+`variable = library.method()`
+where "library" is the imported library, "method" is the method of that library (or can be anything like variable assignlents)
+and "variable" as the variable name
+
+
+
+
 
 
 
