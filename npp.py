@@ -155,7 +155,7 @@ class NPP:
         self.in_if = False # inside an if statement
         self.if_executed = False # if an if statement is executed with the conditions being true, turns True
         self.condition = False # for the if, else if statement, turns true once their condition is also true
-        self.in_block = False # while exiting or skipping some if and else if statement, this turns true if it's inside a code block (code blocks startimg with { and ends with })
+        self.in_block = 0 # while exiting or skipping some if and else if statement, this turns true if it's inside a code block (code blocks startimg with { and ends with })
         self.attempt = False # for try-except, but in this language is attempt-catch, once attempting to execute a code, all errors wont print out a trace back, instead it gets catch if it matches with the error name of the catch block
         self.special = "    " # for OOP, if a class constructor first argument is for example "self", this will be self, and if it's "fles" it will be fles :)
         self.in_class = [None, False] # if the program is currently in a code, first index stores the name of the class, the second shows True if they are in a class, else False
@@ -335,6 +335,7 @@ class NPP:
             expression = self.arbritrary_exp(expression, ret_exp)
         if ret_exp:
             return expression # usefull because it can be use for repeatedly quick evaluation without doing self arbritrary code checks
+        expression = str(expression)
         tree = ast.parse(expression.strip(), mode='eval') # parsing time
         evaluator = SafeEval(globals, locals)
         self.evals = False
@@ -439,6 +440,8 @@ class NPP:
                 self.classes[self.in_class[0]]["variables"][v] = self.variables[v]
                 if v not in self.classes[self.in_class[0]]["variables"]["<attr>"]:
                     self.classes[self.in_class[0]]["variables"]["<attr>"].append(v)
+            if v not in self.constants.keys():
+                self.constants[v] = [True, self.variables[v]]
             if self.variables[v] != self.constants[v][1]:
                 self.constants[v][0] = False
         if self.in_class[1]:
@@ -1111,10 +1114,16 @@ class NPP:
         elif instruction.startswith('load'):
             # load name[addr] = value
             # this keyword handles list loading and dictionaries aswell
-            part = instruction.split()
-            parts = part[1].strip(']').split('['); name = parts[0]
-            addr = parts[1]
-            value = part[3]
+            instruction = instruction[5:]
+            part = instruction.split("=", 1)
+            value = part[1].strip()
+            parts = part[0].split("[", 1)
+            
+            addr = parts[1].strip().split("]")[0]
+            name = parts[0].strip()
+#            parts = part[1].strip(']').split('['); name = parts[0]
+#            addr = parts[1]
+#            value = part[3]
             if name not in self.variables:
                 if not self.attempt:
                     print("\033[31mTraceback(most_recent_call_back):\033[0m")
@@ -1208,9 +1217,9 @@ class NPP:
                 count -= 1
                 while True:
                     count += 1
-                    if self.Instructions[count].strip().startswith('{'):
+                    if self.Instructions[count].strip().startswith('{') or self.Instructions[count].strip().endswith('{'):
                         self.in_block += 1
-                    if self.Instructions[count].strip().startswith('}') and self.in_block:
+                    if self.Instructions[count].strip().startswith('}') and self.in_block > 0 or self.Instructions[count].strip().endswith('}') and self.in_block > 0:
                         self.in_block -= 1
                         
                     if not self.Instructions[count].strip().startswith(('{', '}', 'else')) and self.in_block == 0:
@@ -1662,7 +1671,7 @@ class NPP:
                     b, count = self.get_block()
                     self.classes[insts]["methods"][func_name] = {'block': b, 'args': func_arg, 'end': count, 'start': start, "type": "pub" if block[self.cnt].strip().startswith("public") else "priv"}
                     self.classes[insts]["variables"]["<attr>"].append(func_name)
-                    self.cnt = count
+                    self.cnt = count - 1
                 self.cnt += 1
             self.cnt = og_cnt - 1
             self.Instructions = og_inst
@@ -1797,7 +1806,7 @@ class NPP:
                     if len(result) > 1:
                         self.cnt = result[1]
                     return
-                lib = libraries(instruction)
+                lib = libraries(**self.__dict__)
                 result = lib.process(instruction, t, m, r, json, sys, variant="ol")
                 if result == [] or result is None:
                     return
@@ -1870,14 +1879,16 @@ class NPP:
         def built_in_functions(left, main, right, meth):
             global m, r, t, json, sys
             libs = False
-            try:
+            if True:
                 if main.startswith('num(') and main.endswith(')'):
                     self.handle_num_function(left, main)
                     return
                 elif main in list(self.variables.keys()) and exec_vars:
                     self.variables[left] = self.variables[main]
+                    return
                 elif main in list(self.variables.keys()) and not exec_vars:
                     self.variables[left] = main
+                    return
                     
                 elif main.startswith('input(') and main.endswith(')'):
                     output = main.split('(', 1)
@@ -2054,9 +2065,9 @@ class NPP:
                     elif isinstance(arg, list):
                         if isinstance(name, list) and len(arg) == 2 or reverse or not reverse:
                             if not reverse:
-                                self.variables[left] = self.bucket_sort(name)
+                                self.variables[left] = sorted(name)
                             elif reverse:
-                                sort_val = self.bucket_sort(name)
+                                sort_val = sorted(name)
                                 self.variables[left] = list(reversed(sort_val))
                             return
                         if not isinstance(name, list):
@@ -2068,7 +2079,6 @@ class NPP:
                                 print(f"\nTypeError: sort() 1st given argument is not a list")
                             self.Errors["TypeError"] = True
                             return
-                        self.variables[left] = sorted(name)
                     return
                 elif main.startswith("mean(") and main.endswith(")"):
                     arg = self.eval(main[5:-1].strip(), {}, self.variables)
@@ -2253,8 +2263,7 @@ class NPP:
                             item_now += str(i)
                         self.variables[left] = self.eval(item_now, {}, self.variables)
                     return
-                elif self.library:
-                    
+                elif self.library and "." in right:
                     if any(instruction.strip().startswith(self.library_name[l] + ".") and l in self.library for l in self.nplibs.keys()):
                         struct = instruction.split(".", 1)
                         key = self.name_library[struct[0]]
@@ -2266,13 +2275,12 @@ class NPP:
                         if len(result) >= 1:
                             self.variables = result[0]
                             return
-                    lib = libraries(self.library, self.library_name, self.variables, (left, right), self.cnt, self.classes.copy(), self.functions.copy(), self.in_class, self.current_func)
-                    result = lib.process((left, right), t, m, r, json, sys, variant="va")
+                    lib = libraries(**self.__dict__)
+                    result = lib.process((left, right), t, m, r, json, sys, variant="av")
                     if result == [] or result is None:
                         pass
                     if len(result) >= 1:
                         self.variables = result[0]
-                        
                         return
                 if not libs:
                     """
@@ -2280,32 +2288,32 @@ class NPP:
                     """
                     main = main.replace('++', '<<').replace('--', '>>')
                     self.variables[left] = self.eval(main, {}, self.variables, ret_exp=not exec_vars)
-            except Exception as e:
-                if isinstance(e, ZeroDivisionError):
-                    if not self.attempt:
-                        print("\033[31mTraceback(most_recent_call_back):\033[0m")
-                        for i in self.traceback:
-                            print(f"    TB - [ File `<string>` line: {self.traceback[i]}, in {i} ],")
-                        print(f"    TB - [ File `<string>` TB found > line: {self.og_c} in {i} ]")
-                        print(f"\nZeroDivisionError: can't divide by 0...")
-                    self.Errors["ZeroDivisionError"] = True
-                    return None
-                if isinstance(e, MemoryError):
-                    if not self.attempt:
-                        print("\033[31mTraceback(most_recent_call_back):\033[0m")
-                        for i in self.traceback:
-                            print(f"    TB - [ File `<string>` line: {self.traceback[i]}, in {i} ],")
-                        print(f"    TB - [ File `<string>` TB found > line: {self.og_c} in {i} ]")
-                        print(f"\nMemoryError: why would you do this")
-                    self.Errors["MemoryError"] = True
-                    return
-                print("\033[31mTraceback(most_recent_call_back):\033[0m")
-                for i in self.traceback:
-                    print(f"    TB - [ File `<string>` line: {self.traceback[i]}, in {i} ],")
-                print(f"    TB - [ File `<string>` TB found > line: {self.og_c} in {i} ]")
-                print(f"\nSyntaxError: Invalid given syntax {main}, {e}")
-                self.Errors["SyntaxError"] = True
-                return None
+#            except Exception as e:
+#                if isinstance(e, ZeroDivisionError):
+#                    if not self.attempt:
+#                        print("\033[31mTraceback(most_recent_call_back):\033[0m")
+#                        for i in self.traceback:
+#                            print(f"    TB - [ File `<string>` line: {self.traceback[i]}, in {i} ],")
+#                        print(f"    TB - [ File `<string>` TB found > line: {self.og_c} in {i} ]")
+#                        print(f"\nZeroDivisionError: can't divide by 0...")
+#                    self.Errors["ZeroDivisionError"] = True
+#                    return None
+#                if isinstance(e, MemoryError):
+#                    if not self.attempt:
+#                        print("\033[31mTraceback(most_recent_call_back):\033[0m")
+#                        for i in self.traceback:
+#                            print(f"    TB - [ File `<string>` line: {self.traceback[i]}, in {i} ],")
+#                        print(f"    TB - [ File `<string>` TB found > line: {self.og_c} in {i} ]")
+#                        print(f"\nMemoryError: why would you do this")
+#                    self.Errors["MemoryError"] = True
+#                    return
+#                print("\033[31mTraceback(most_recent_call_back):\033[0m")
+#                for i in self.traceback:
+#                    print(f"    TB - [ File `<string>` line: {self.traceback[i]}, in {i} ],")
+#                print(f"    TB - [ File `<string>` TB found > line: {self.og_c} in {i} ]")
+#                print(f"\nSyntaxError: Invalid given syntax {main}, {e}")
+#                self.Errors["SyntaxError"] = True
+#                return None
         if not run_meth and not pre_run:
             built_in_functions(left, main, right, meth)
         else:

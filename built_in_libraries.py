@@ -6,13 +6,14 @@ from npp import NPP
 
 t, m, r, sys, json = None, None, None, None, None
 class libraries:
-    def __init__(self, library, library_name, variables, cnt, classes, functions, in_class, current_func, Errors, attempt, **kwargs):
-        self.libraries = ["math", "files", "random", "sys", "time", "smart", "os"]
-        self.library_name = lib_name
+    def __init__(self, library, library_name, variables, cnt, classes, functions, in_class, current_func, Errors, attempt, Instructions, **kwargs):
+        self.libraries = ["math", "files", "random", "sys", "time", "smart", "os", "debug"]
+        self.library_name = library_name
         self.library = library
-        if isinstance(line, tuple):
-            line = line[0] + line[1]
-        npp = NPP(line)
+        self.line = ""
+        for l in Instructions:
+            self.line += l + "\n"
+        npp = NPP(self.line)
         self.npp = npp
         self.cnt = cnt
         self.eval = npp.eval
@@ -26,14 +27,14 @@ class libraries:
         self.counter = 0
         self.Errors = Errors
     
-    def process(self, line, ti, ma, ra, jsn, syss, variant="va"):
+    def process(self, line, ti, ma, ra, jsn, syss, variant="av"):
         global t, m, r, sys, json
         t = ti
         m = ma
         r = ra
         json = jsn
         sys = syss
-        if variant == "va":
+        if variant == "av":
             res = self.assign_variables(line, variant)
             return tuple([self.variables])
         else:
@@ -177,8 +178,8 @@ class libraries:
                 print(e)
     def assign_variables(self, line, var):
         global t, m, r, json, sys
-        if var == "va":
-            inst = self.line
+        if var == "av":
+            inst = line
             left = inst[0]
             right = inst[1]
             libs = False
