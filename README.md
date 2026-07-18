@@ -2,9 +2,7 @@ ___
 # About
 ___
 
-N++, Nlang, Npp, Npl
-
-Npp is a transpiled language writen in python.
+Npp (or N++, Nplang) is a transpiled language writen in python.
 It is a high level, simple programming language,
 with an easy to read syntax, declarations and instances.
 And many more features N++ includes,
@@ -187,7 +185,153 @@ ___
 # Example Npp Codes
 ___
 
-• Calculator code
-```python
-
+• Simple Syntax Examples
 ```
+// double slash as comments
+output("Hello, World!") // hello world example
+user_input = input("Type in anything: ")
+output(user_input)
+lst = [2, 6, 4, 9, 8, 1, 3, 0, 5, 7]
+tup = (1, 2, 3, 4, 5)
+dicts = {"a": 10, "b": 20, "c": 30}
+sets = {1, 2, 3, 4, 5}
+
+bif = sort(lst) // built ins
+if (dicts["a"] == 10) && (tup[5] == 5)
+{
+    output("This has 10 and 5")
+}
+// Curly brackets as code blocks, and functional if statement condition
+```
+• Calculator code
+```
+// Calculator
+num_a = input("Enter the first number >>> ").as(int)
+num_b = input("Enter the second number >>> ").as(int)
+operation = input("Enter an operation (+, -, *, /) >>> ")
+
+result = 0
+
+// indentation isn't really necessary
+
+if (operation == "+") {
+    result = num_a + num_b
+}
+else if (operation == "-") {
+    result = num_a - num_b
+}
+else if (operation == "*") {
+    result = num_a * num_b
+}
+else {
+    result = num_a * num_b
+}
+output("Result is:", result)
+```
+
+• Bubble sort
+```
+public func bubble(lst)
+{
+    lens = length(lst)
+    for i in range(lens)
+    {
+        for k in range(lens - 1)
+        {
+            x = lst[k]
+            y = lst[k + 1]
+            
+            if (x > y)
+            {
+                load lst[k] = y
+                load lst[k + 1] = x
+            }
+        }
+    }
+    return lst
+}
+
+unsorted_list = [2, 4, 6, 3, 8, 1, 10, 9, 7, 5]
+sorted_list = call bubble(unsorted_list)
+```
+• For loop
+```
+import time
+rename time as t
+
+// Prints from 1 to N
+number = input("enter maximum range > ").as(int)
+
+start = t.time()
+
+for cnt in range(1, number)
+{
+    output(cnt)
+}
+
+end = t.time()
+est = end - start
+
+output(f("Estimated taken time {est}"))
+```
+• Guess the number
+```
+
+import random
+rename random as r
+
+output("Welcome to guess the number game!")
+output("guess a number from 1 to 100 > ")
+
+generated = r.randint(1, 100)
+while (True) {
+    answer = input("You: ").as(int)
+    if (answer > generated)
+    {
+        output("> Too high")
+    }
+    else if (answer < generated)
+    {
+        output("> Too low")
+    }
+    else
+    {
+        output("You guessed correctly!")
+        output("The answer was: ", generated)
+        break
+    }
+}
+```
+
+___
+# Things to Note
+___
+- This code was first developed around November of 2024, Where I only had been learning python for about 3 months.
+- This transpiled language is a hobby language and project, This project was develop with the purpose of teaching me more about python, programming, debugging, and more
+- There are parts of the Npp source code that were written a year ago, where codes weren't structured properly, and some were written a few months ago, when I finally came back to work on to this language, which are structured neatly while still following the design of the program when i first written it.
+___
+# What to expect
+___
+- you should expect tons of bugs, errors, and parsing problems. This language is still not bug free
+- The language is getting bug fixes and development everyday, updates frequently every week, but sometimes it won't be quick, as I (main contributor) am also busy with other things.
+- Most updates are bug fixes, andmajor updates only drops whenever there are minimal bugs left that doesn't occur majorly in most programs
+- Npp version 2 might take months or years, as I have plans to rewrite everything all with my current knowledge in programming.
+- Testing takes long, as most tests works while some tests doesn't. Each tests are npp test programs, most of the time, I always test after debugging, some of these programs works, while others doesn't. So some bug fixes makes little difference
+___
+# Updates
+___
+"npp.py" is the main npp code, while libraries in $~versions are older versions of npp.
+Npp gets updates every 1-2 weeks for bug fixes, monthly for features
+Npp is currently at version 1.1.0
+• Minor updates - Npp will get small features and bug fixes with this updates, Minor updates also includes updates outside of npp.py, built in libraries, or others will also get updates.
+• Major updates - Npp gets updates that includes huge features, additions, bug fixes, and even reworks. These updates are mostly rare, sometimes just every few months or a year if I have the time. This type of update is important as it could majorly improve speed, optimizations, future development, or syntaxes.
+___
+# Plans with Npp
+___
+- version >1.2.0: planned on focusing mostly on bug fixes that were left in this language
+- version >1.5.0: planned on adding more built in libraries, functions, methods, and keywords, and also improve more on file managements and OOP
+- version >1.7.0: planned on using backend dependencies with different languages, mostly C++ or Java
+- version >2.0.0: planned on Npp rework, with 3 key planned programs.
+  1. Full python rework - Npp source code gets rework in the same environment
+  2. Multi language rework - Npp source codes get split across multiple language, each with their own purposes and responsibility, but the main idea is still in python
+  3. Compiler rework - 2 types, either Npp code gets translated into machine code like a compiler or in a VM, or fully rewriten somewhere like C++
