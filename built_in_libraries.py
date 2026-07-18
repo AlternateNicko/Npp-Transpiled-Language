@@ -118,7 +118,7 @@ class libraries:
                         if args in self.functions.keys():
                             print(f"<NDB>> FUNCTION <{args}> IS DEFINED")
                         else:
-                            print(f"<NDB>> FUNCTION <{args}> IS NOT DEFINED")l
+                            print(f"<NDB>> FUNCTION <{args}> IS NOT DEFINED")
                     elif man.startswith("attributes(") and man.endswith(")"):
                         args = man[10:-1].strip()
                         if args not in self.classes.keys():
