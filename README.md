@@ -186,3 +186,8 @@ results = npp.execute()
 ___
 # Example Npp Codes
 ___
+
+• Calculator code
+```python
+
+```
