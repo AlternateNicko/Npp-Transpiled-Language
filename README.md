@@ -3,8 +3,11 @@ ___
 ___
 
 Npp (or N++, Nplang) is a transpiled language writen in python.
-It is a high level, simple programming language,
-with an easy to read syntax, declarations and instances.
+It is a high level, simple programming language, a project that I have been doing for over a year as a hobby.
+Due to sophisticated syntaxes and many supports, I've decided to make it public
+
+Npp includes an easy to read syntax, mainly from python type keywords and C++ like syntaxes.
+Simple language features like declarations, instances, keywords, built ins, and OOP.
 And many more features N++ includes,
 The followings are:
 - variable declarations
@@ -126,6 +129,9 @@ and "variable" as the variable name
 ___
 # Setup
 ___
+The setup is simple, you can open up NppIDE.py, a simple notebook like IDE, then after writing the code, save it as .npp, or .nxx, a file extension for Npp
+then at npp_interactive_shell, type
+`N++ your_file.npp`
 to setup Npp, you have to first make a .py python program outside of the directory where Npp is stored.
 then write this code
 ```python
