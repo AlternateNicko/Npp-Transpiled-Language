@@ -2,13 +2,13 @@ ___
 # About
 ___
 
-Npp (or N++, Nplang) is a transpiled language writen in python.
+Nlang (or N++, Npp) is a transpiled language writen in python.
 It is a high level, simple programming language, a project that I have been doing for over a year as a hobby.
 Due to sophisticated syntaxes and many supports, I've decided to make it public
 
-Npp includes an easy to read syntax, mainly from python type keywords and C++ like syntaxes.
+Nlang includes an easy to read syntax, mainly from python type keywords and C++ like syntaxes.
 Simple language features like declarations, instances, keywords, built ins, and OOP.
-And many more features N++ includes,
+And many more features Nlang includes,
 The followings are:
 - variable declarations
 - function definition
@@ -21,8 +21,7 @@ The followings are:
 - unique built ins
 - value types like str, int, float, list, tuple, dict, set
 
-Npp source code is written in Python, but future plans are also thinking about
-having backend dependencies of Npp inside C++ for performance utilizations
+Nlang source code is written in Python
 
 ___
 # Syntax
@@ -98,7 +97,7 @@ class Child_class(Parent_class1, Parentclass2, ...)
 ___
 # Libraries
 ___
-Npp supports custom user built libraries that it can add within the code, and treats it as one
+Nlang supports custom user built libraries that it can add within the code, and treats it as one
 This can be either importing .npp codes
 or building your own library (in /library directory) which uses python programs or even deeper, any type of program as long as it follows these instructions
 ```python
@@ -129,10 +128,10 @@ and "variable" as the variable name
 ___
 # Setup
 ___
-The setup is simple, you can open up NppIDE.py for a quicker coding, or NppIDE.html for a detailed IDE, both simple notebook like IDE (doesn't execute), then after writing the code, save it as .npp, or .nxx, a file extension for Npp
+The setup is simple, you can open up NppIDE.py for a quicker coding, or NppIDE.html for a detailed IDE, both simple notebook like IDE (doesn't execute), then after writing the code, save it as .npp, or .nxx, a file extension for Nlang
 then at npp_interactive_shell, type
 `N++ your_file.npp`
-to setup Npp, you have to first make a .py python program outside of the directory where Npp is stored.
+to setup Nlang, you have to first make a .py python program outside of the directory where Nlang (NPP) is stored.
 then write this code
 ```python
 from Npp.npp import NPP
@@ -336,13 +335,3 @@ Npp gets updates every 1-2 weeks for bug fixes, monthly for features
 
 • Minor updates - Npp will get small features and bug fixes with this updates, Minor updates also includes updates outside of npp.py, built in libraries, or others will also get updates.
 • Major updates - Npp gets updates that includes huge features, additions, bug fixes, and even reworks. These updates are mostly rare, sometimes just every few months or a year if I have the time. This type of update is important as it could majorly improve speed, optimizations, future development, or syntaxes.
-___
-# Plans with Npp
-___
-- version >1.2.0: planned on focusing mostly on bug fixes that were left in this language
-- version >1.5.0: planned on adding more built in libraries, functions, methods, and keywords, and also improve more on file managements and OOP
-- version >1.7.0: planned on using backend dependencies with different languages, mostly C++ or Java
-- version >2.0.0: planned on Npp rework, with 3 key planned programs.
-  1. Full python rework - Npp source code gets rework in the same environment
-  2. Multi language rework - Npp source codes get split across multiple language, each with their own purposes and responsibility, but the main idea is still in python
-  3. Compiler rework - 2 types, either Npp code gets translated into machine code like a compiler or in a VM, or fully rewriten somewhere like C++
