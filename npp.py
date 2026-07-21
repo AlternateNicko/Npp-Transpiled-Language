@@ -124,7 +124,7 @@ class NPP:
         # where module_class is the class object of that library
         
         # CONFIGURATIONS
-        self.version = "1.0.2" # current version
+        self.version = "1.0.3" # current version
         self.path = Path.cwd() if path is None else path # current program directory
         self.file_name = file # name of file
         self.file_extension = extension
