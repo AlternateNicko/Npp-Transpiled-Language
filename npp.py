@@ -234,7 +234,8 @@ class NPP:
         if not from_exp:
             expr = self.expression(expression)
             if expr["iseval"]:
-                return eval(str(expr["expr"]), {}, self.variables)
+                return eval(str(expr["expr"]), {}, self.variables) # This only evaluates NPP expression despite using python eval(),
+                # self.expression() uses Npp approve and only syntax, doesn't include python codes'
             else:
                 expression = expr["expr"]
         if from_lib:
@@ -260,7 +261,7 @@ class NPP:
                 pattern = r'(?<!\w)[+-]?(?:\d+\.\d+|\d+\.|\.\d+)(?!\w)'
                 if bool(re.search(pattern, expression)) and istrue:
                     execution = True
-                elif not bool(re.search(pattern, text)) and istrue:
+                elif not bool(re.search(pattern, expression)) and istrue:
                     execution = True
                     methods = True
             for i in self.bif: #
@@ -543,7 +544,7 @@ class NPP:
             else:
                 nested = 0
             block = [] # to be returned
-            while cnt <= len(self.Instructions):
+            while cnt < len(self.Instructions):
                 line = self.Instructions[cnt].strip()
                 block.append(line)
                 cnt += 1
@@ -700,7 +701,7 @@ class NPP:
             line = self.Instructions[cnt].strip().split("=")[1].strip()
             block.append(line)
             cnt += 1
-            while cnt <= len(self.Instructions) and nested > 0:
+            while cnt < len(self.Instructions) and nested > 0:
                 line = self.Instructions[cnt].strip()
                 if line.startswith(types):
                     nested += 1
@@ -1054,7 +1055,7 @@ class NPP:
         
         past_name = self.og_fname
         og_name = self.func_name
-        og_cache = copy.deepcopy(self.cache)
+        og_cache = self.cache
         self.cache = {
             "eval": {}, # for evaluation
             "func": {},
@@ -1121,7 +1122,7 @@ class NPP:
         self.variables = self.classes[name]["variables"].copy()
         past_name = self.og_fname
         og_name = self.func_name
-        og_cache = copy.deepcopy(self.cache)
+        og_cache = self.cache
         self.cache = {
             "eval": {}, # for evaluation
             "func": {},
@@ -1484,6 +1485,7 @@ class NPP:
             self.exec_fl += 1
             for cnt, val in enumerate(iterable):
                 self.variables[arg] = val
+                self.process_vars()
                 code = self.prep_exec(block)
                 self.exec_block(code, count)
                 if self.breaking:
@@ -1691,26 +1693,50 @@ class NPP:
                     else:
                         pass # some built in libraries have its own functions and methods
                     continue
-                if Path(self.path + "/" + lib.replace(".", "/") + ".npp").exists():
+                if Path(self.path / Path(lib.replace(".", "/")).with_suffix(".npp")).exists():
                     # execute .npp and get variables, functions, and methods
                     # types of imports -
                     # import file_npp <- imports full code
                     # import directory.file_npp <- imports code
                     # import file_npp get func_or_class <- imports a function or class instead of the whole code
                     types = "dir" if "." in lib else "cwd"
-                    path = self.path
+                    path = str(self.path)
                     if types == "dir":
                         # get directory
-                        path += "/" + lib.replace(".", "/") + ".npp"
+                        pathp = path / Path(lib.replace(".", "/")).with_suffix(".npp")
+                        pathx = path / Path(lib.replace(".", "/")).with_suffix(".nxx")
                     else:
-                        path += "/" + lib + ".npp"
+                        pathp = path / Path(lib).with_suffix(".npp")
+                        pathx = path / Path(lib).with_suffix(".nxx")
                     # get name
-                    if dir:
-                        split_vars = path.rsplit("/", 1)
-                        name = split_vars[1]
-                        absolute_path = split_vars[0]
-                    with open(path, "r") as file:
-                        code = str(file.read())
+                    split_varsp = str(pathp).rsplit("/", 1)
+                    split_varsx = str(pathx).rsplit("/", 1)
+                    namep = split_varsp[1]
+                    namex = split_varsx[1]
+                    absolute_pathp = split_varsp[0]
+                    absolute_pathx = split_varsx[0]
+                    if pathp.exists():
+                        with open(pathp, "r") as file:
+                            code = str(file.read())
+                        path = pathp
+                        name = namep
+                        absolute_path = absolute_pathp
+                    elif pathx.exists():
+                        with open(pathx, "r") as file:
+                            code = str(file.read())
+                        name = namex
+                        absolute_path = absolute_pathx
+                        path = pathx
+                        
+                    else:
+                        print("\033[31mTraceback(most_recent_call_back):\033[0m")
+                        for i in self.traceback:
+                            print(f"    TB - [ File `<{self.path / Path(self.file_name).with_suffix(self.file_extension)}>` line: {self.traceback[i]}, in {i} ],")
+                        print(f"    TB - [ File `<{self.path / Path(self.file_name).with_suffix(self.file_extension)}>` TB found > line: {self.og_c} in {i} ]")
+                        print(f"\nModuleError: Cannot access directory `{lib}` perhaps try a different directory?")
+                        self.Errors["ModuleError"] = True
+                        return
+                        
                     # execute code
                     npp = NPP(code, {}, absolute_path, name)
                     result = npp.execute()
@@ -1751,6 +1777,7 @@ class NPP:
                     self.classes.update(classes)
                     self.func_scope.update(func_scope)
                     self.library.append(name)
+                    self.process_vars()
                 else:
                     print("\033[31mTraceback(most_recent_call_back):\033[0m")
                     for i in self.traceback:
@@ -1758,6 +1785,7 @@ class NPP:
                     print(f"    TB - [ File `<{self.path / Path(self.file_name).with_suffix(self.file_extension)}>` TB found > line: {self.og_c} in {i} ]")
                     print(f"\nModuleError: Module `{lib}` not an available module")
                     self.Errors["ModuleError"] = True
+                    return
                     
         elif instruction.startswith("rename"):
             # rename variables and libraries
@@ -2159,11 +2187,8 @@ class NPP:
                 if main.startswith('num(') and main.endswith(')'):
                     self.handle_num_function(left, main)
                     return
-                elif main in list(self.variables.keys()) and exec_vars:
+                elif main in list(self.variables.keys()):
                     self.variables[left] = self.variables[main]
-                    return
-                elif main in list(self.variables.keys()) and not exec_vars:
-                    self.variables[left] = main
                     return
                     
                 elif main.startswith('input(') and main.endswith(')'):
@@ -2369,7 +2394,7 @@ class NPP:
                         self.Errors["ValueError"] = True
                         return None
                     val = sum(arg)
-                    self.variables[left] = val / 2
+                    self.variables[left] = val / len(arg)
                     return
                 elif main.startswith("median(") and main.endswith(")"):
                     arg = self.eval(main[7:-1].strip(), {}, self.variables)
@@ -2466,7 +2491,7 @@ class NPP:
                     arg = self.special_split(main[4:-1].strip(), ",", ('"', "'", "(", "[", "{"), ('"', "'", ")", "]", "}"))
                     new_list = []
                     for value in arg:
-                        new_list.append(self.eval(value.strip(), {}, self.variabls))
+                        new_list.append(self.eval(value.strip(), {}, self.variables))
                     self.variables[left] = list(zip(*new_list))
                     return
                 elif main.startswith("dict(") and main.endswith(")"):
@@ -2623,7 +2648,7 @@ class NPP:
                 cnt = 1
                 while cnt < len(var_func):
                     if var_func[cnt].startswith('cap(') and var_func[cnt].endswith(')') :
-                        func = var_func[cnt].strip('cap(').strip(')')
+                        func = var_func[cnt][4:-1]
                         arg_er = list(func.split(',')) # list() because if no comma, it wouldnt be a list
                         if func != '':
                             print("\033[31mTraceback(most_recent_call_back):\033[0m")
@@ -2644,7 +2669,7 @@ class NPP:
                             self.Errors["TypeError"] = True
                             return
                     if var_func[cnt].startswith('low(') and var_func[cnt].endswith(')') :
-                        func = var_func[cnt].strip('low(').strip(')')
+                        func = var_func[cnt][4:-1]
                         arg_er = list(func.split(','))
                         if func != '':
                             if not self.attempt:
@@ -2666,7 +2691,7 @@ class NPP:
                             self.Errors["TypeError"] = True
                             return
                     elif var_func[cnt].startswith('as(') and var_func[cnt].endswith(')'):
-                        args = var_func[cnt].strip(')').strip('as').strip('(')
+                        args = var_func[cnt].strip(')')[3:-1]
                         if name in self.variables:
                             try:
                                 if args in self.variables:
@@ -2938,7 +2963,7 @@ class NPP:
         # Handle output of string literals, variables, and expressions    
         if instruction.startswith('call '):
             # calls a user defined function (also supports class methods, both inside a class and outside)
-            arg = self.special_split(instruction[5:-1], "(", ("'", '"'), ("'", '"'))
+            arg = self.special_split(instruction[5:-1], "(", ("'", '"'), ("'", '"'), False, 1)
             name = arg[0]
             polymorph = False
             if any(name.startswith(aa+".") for aa in list(self.variables.keys())):
@@ -2948,7 +2973,7 @@ class NPP:
                     name = self.eval(name[0], {}, self.variables) + "." + name[1]
                 except Exception:
                     name = arg[0]
-            if any(name == a for a in list(self.class_callers.keys())) or name.startswith(self.special) and self.in_class[0] or any(name.startswith(a) for a in list(self.classes.keys())):
+            if any(name == a for a in list(self.class_callers.keys())) or any(name.startswith(a) for a in list(self.classes.keys())):
                 name = name.strip().split(".")
                 m_name = name[1]
                 if any(name[0].startswith(a) for a in list(self.class_callers.values())):
@@ -2958,17 +2983,27 @@ class NPP:
                                 name = self.class_callers[i]
                     else: name = self.class_callers[name[0]]
                 else: name = name[0]
-                args = arg[1].split(',')
+                args = self.special_split(arg[1], ",", ('"', "'", "(", "[", "{"), ('"', "'", ")", "]", "}"))
                 args = [self.convert_arg(arg.strip()) for arg in args]
                 self.classes[name]["methods"][m_name]["end"] = self.cnt
-                v = self.run_methods(name, m_name, args)
-                self.cnt = ending
+                v = self.run_methods(name, m_name, args, False)
+            
+            elif name.startswith(self.special) and self.in_class[0] and self.in_class[1]:
+                # runs class methods within the class itself
+                name = name.strip().split(".", 1)
+                m_name = name[1].strip()
+                class_n = self.in_class[0]
+                classes = self.classes[class_n]
+                args = self.special_split(arg[1], ",", ('"', "'", "(", "[", "{"), ('"', "'", ")", "]", "}"))
+                args = [self.convert_arg(arg.strip()) for arg in args]
+                classes["methods"][m_name]["end"] = self.cnt
+                v = self.run_methods(class_n, m_name, args, False)
+                
             elif name in list(self.functions.keys()):
                 a = arg[1].split(',')
                 a = [self.convert_arg(ar.strip()) for ar in a]
                 self.functions[name]['end'] = self.cnt
                 v = self.run_functions(name, a, False)
-                self.cnt = ending
             elif self.in_func:
                 if self.is_priv and name in list(self.func_scope.keys()) or self.is_pub and self.func_name in list(self.func_scope.keys()):
                     a = arg[1].split(',')
@@ -2980,7 +3015,6 @@ class NPP:
                         self.func_scope[self.func_name]["functions"][name]['end'] = self.cnt
                     v = self.run_functions(name, a, True)
                     self.cnt = ending
-                    
             if not self.in_class[1]:
                 self.special = "    "
             return v
