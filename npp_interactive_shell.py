@@ -33,8 +33,7 @@ commands = [
 "cd", "ls", "dir", "mkdir",
 "npi", 
 ]
-
-path = os.getcwd()
+path = "/storage/emulated/0"
 os.chdir(path)
 print(text)
 
@@ -112,7 +111,7 @@ class SimpleShell:
                         file_path = load_path(path, file_name)
                         with open(file_path, "r") as file:
                             code = file.read()
-                        npp = NPP(code, {}, path, file_name)
+                        npp = NPP(code)
                         results = npp.execute()
                     except Exception as e:
                         print(e)
